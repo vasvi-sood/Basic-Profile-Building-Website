@@ -19,7 +19,6 @@ if (isset($_POST["add"])) {
         ':headline' => $headline,
         ':summary' => $summary
     ));
-    $sql = "SELECT profile_id from `Profile`";
     $profile_id = $pdo->lastInsertId();
     $i = 1;
     while (isset($_POST["positionyear$i"])) {
@@ -34,6 +33,40 @@ if (isset($_POST["add"])) {
             ':description' => $description,
         ));
         $i++;
+    }
+
+
+    $j = 1;
+    while (isset($_POST["educationyear$j"])) {
+        $year = $_POST["educationyear$j"];
+        $school = $_POST["school$j"];
+        $sql = "SELECT institution_id FROM `Institution` where name=:school";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array(
+            ':school' => $school
+        ));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $institution_id;
+        if ($row == false) {
+            $sql = "INSERT INTO `Institution` (name) VALUE (:school)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array(
+                ':school' => $school
+            ));
+            $institution_id = $pdo->lastInsertId();
+        } else {
+            $institution_id = $row["institution_id"];
+        }
+
+        $sql = "INSERT INTO `Education` ( `profile_id`,`institution_id`, `rank`, `year`) VALUES ( :profile_id, :institution_id, :rank, :year)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array(
+            ':profile_id' => $profile_id,
+            ':institution_id' => $institution_id,
+            ':rank' => $j,
+            ':year' => $year
+        ));
+        $j++;
     }
 
     header("Location:index.php");
@@ -72,6 +105,8 @@ if (isset($_POST["add"])) {
         </textarea>
         <label>Position <button onclick="  addPosition(); return false; ">+</button></label>
         <div id="positions"></div>
+        <label>Education <button onclick="  addEducation(); return false; ">+</button></label>
+        <div id="educations"></div>
         <BR>
         <input type="submit" value="Add" name="add" onclick="return verify(); ">
         <input type="submit" value="Cancel" onclick=" location.replace('index.php');return false;">
@@ -87,6 +122,7 @@ if (isset($_POST["add"])) {
     <script src="jquery.min.js"></script>
     <script type="text/javascript">
     let position = 0;
+    let education = 0;
 
     function verify() {
 
@@ -117,7 +153,48 @@ if (isset($_POST["add"])) {
             }
             i++;
         }
+        let j = 1;
+        while ($(`#education${j}`).length > 0) {
+            console.log($(`#educationyear${j}`).val().trim().length, $(`#school${j}`).val().trim().length);
+            if ($(`#educationyear${j}`).val().trim().length <= 0 || $(`#school${j}`).val().trim().length <= 0) {
+                $("#message").html("All fields are required");
+                return false;
+            }
+            j++;
+        }
         return true;
+    }
+
+    function addEducation() {
+        if (education >= 9)
+            alert("Only 9 possitions are allowed");
+        else {
+
+            education++;
+            var child = document.createElement("div");
+            var minus = document.createElement("button");
+            minus.id = `eminus${education}`;
+            minus.innerHTML = "-";
+            child.id = `education${education}`;
+            minus.addEventListener("click", function(e) {
+                removeEducation(e.target.id);
+
+                e.preventDefault();
+
+            });
+
+
+            child.innerHTML = `<label>Year</label><input type="number" id="educationyear${education}" name="educationyear${education}"><label>School</label><input type="text" id="school${education}" name="school${education}">
+        </input>`;
+            child.append(minus);
+            $(child).css("display", "block");
+            console.log(child.id);
+
+            $("#educations").append(child);
+
+
+        }
+
     }
 
     function addPosition() {
@@ -150,6 +227,28 @@ if (isset($_POST["add"])) {
 
         }
 
+    }
+
+    function removeEducation(minusid) {
+        id = minusid.substring(6);
+        console.log("hiding", id);
+        let i = Number(id) + 1;
+
+        //while education id exists
+        $(`#education${id}`).remove();
+        for (; i <= 9; i++) {
+            console.log(`renaming ${i} to ${i-1}`);
+            $(`#education${i}`).attr('id', `education${i-1}`);
+            $(`#eminus${i}`).attr('id', `eminus${i-1}`);
+            $(`#educationyear${i}`).attr('name', `educationyear${i-1}`);
+            $(`#educationyear${i}`).attr('id', `educationyear${i-1}`);
+            $(`#school${i}`).attr('name',
+                `school${i-1}`);
+            $(`#school${i}`).attr('id', `school${i-1}`);
+
+        }
+        education--;
+        return false;
     }
 
     function removePosition(minusid) {

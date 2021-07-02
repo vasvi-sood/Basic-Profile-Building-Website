@@ -44,6 +44,23 @@
 
                 echo "<tr><td>Description: " . htmlentities($row['description']) . "</td></tr>";
             }
+
+            $sql = "SELECT * FROM `Education` where profile_id= :profile_id ORDER BY rank";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array(':profile_id' => $profile));
+
+            echo "<tr><th>Education </th>" . "</tr>";
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+
+                echo "<tr><td>Year : " . htmlentities($row["year"]) . "</td></tr>";
+                $institution_id = $row["institution_id"];
+                $sql2 = "SELECT * FROM `Institution` WHERE institution_id = :institution_id";
+                $stmt2 = $pdo->prepare($sql2);
+                $stmt2->execute(array(':institution_id' => $institution_id));
+                $institution = $stmt2->fetch(PDO::FETCH_ASSOC);
+                echo "<tr><td>School: " . htmlentities($institution["name"]) . "</td></tr>";
+            }
+
             echo "</table>";
         }
     } else {
