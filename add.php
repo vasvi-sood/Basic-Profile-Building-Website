@@ -119,7 +119,8 @@ if (isset($_POST["add"])) {
         return;
     } ?>
 
-    <script src="jquery.min.js"></script>
+
+
     <script type="text/javascript">
     let position = 0;
     let education = 0;
@@ -184,7 +185,7 @@ if (isset($_POST["add"])) {
             });
 
 
-            child.innerHTML = `<label>Year</label><input type="number" id="educationyear${education}" name="educationyear${education}"><label>School</label><input type="text" id="school${education}" name="school${education}">
+            child.innerHTML = `<label>Year</label><input type="number" id="educationyear${education}" name="educationyear${education}"><label>School</label><input type="text" id="school${education}" name="school${education}" class="school" >
         </input>`;
             child.append(minus);
             $(child).css("display", "block");
@@ -210,7 +211,6 @@ if (isset($_POST["add"])) {
             child.id = `position${position}`;
             minus.addEventListener("click", function(e) {
                 removePosition(e.target.id);
-                alert("HI");
                 e.preventDefault();
 
             });
